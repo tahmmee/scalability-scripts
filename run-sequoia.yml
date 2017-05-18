@@ -1,0 +1,27 @@
+---
+- hosts: tag_Name_clients0
+  vars:
+    client_ip: "{{hostvars[groups['tag_Name_clients0'][0]]['ec2_private_ip_address']}}"
+    client_port: "{{PORT|default('2375')}}"
+    client_url: "http://{{client_ip}}:{{client_port}}"
+    sequoia_dir: "{{ ansible_env.HOME }}/go/src/github.com/couchbaselabs/sequoia"
+    provider_file: "ec2.yml"
+    scope_file: "{{SCOPE|default('tests/integration/scope_8x4.yml')}}"
+    test_file: "{{TEST|default('tests/integration/test_allFeatures.yml')}}"
+    test_flags: "{{FLAGS|default('')}}"
+  remote_user: ubuntu 
+  tasks:
+  - copy:
+      src: "/tmp/{{provider_file}}"
+      dest: "{{sequoia_dir}}/providers/file/{{provider_file}}" 
+      mode: 0644
+  - name: get 
+    shell: "/usr/local/go/bin/go get -u github.com/couchbaselabs/sequoia"
+  - name: build 
+    shell: "/usr/local/go/bin/go build"
+    args:
+      chdir: "{{sequoia_dir}}"
+# - name: run 
+#   shell: "./sequoia -client {{client_url}} -provider file:{{provider_file}} -scope {{scope_file}} -test {{test_file}} {{test_flags}}"
+#   args:
+#     chdir: "{{sequoia_dir}}"

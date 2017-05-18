@@ -1,0 +1,23 @@
+- hosts: tag_Type_couchbaseserver_data_cluster1 
+  vars:
+    sudo: yes
+    ver_no: "{{VER|default('4.5.0')}}"
+    build_no:  "{{BUILD_NO|default(2601)}}"
+    flavor:  "{{FLAVOR|default('watson')}}"
+    base_url:  http://172.23.120.24/builds/latestbuilds/couchbase-server/{{flavor}}/
+    build_pkg: "couchbase-server-enterprise-{{ver_no}}-{{build_no}}-centos6.x86_64.rpm"
+    url_var: "{{base_url}}/{{build_no}}/{{build_pkg}}"
+    build_url: "{{URL|default(url_var)}}"
+    rpm_path: "/tmp/couchbase.rpm"
+    #build_url: "https://s3.amazonaws.com/scalability-mcafee/couchbase-server-enterprise-5.0.0-2873-centos7.x86_64.rpm"
+  remote_user: centos 
+  become: yes
+  become_method: sudo 
+  serial: 20
+  tasks:
+  - name: download binary
+    get_url: url="{{build_url}}" dest="{{rpm_path}}"
+  - name: install couchbase
+    yum: name="{{rpm_path}}"
+  - name: permissions 
+    shell: chown couchbase /data && chgrp couchbase /data 

@@ -1,0 +1,39 @@
+---
+- hosts: tag_Name_clients0
+  vars:
+    sudo: yes
+    client: "{{CLIENT|default('0.0.0.0:2375')}}"
+  remote_user: ubuntu 
+  sudo: true
+  tasks:
+  - name: init swarm 
+    shell: docker -H {{client}} swarm init 
+  - name: get token 
+    shell: docker -H {{client}} swarm join-token manager -q
+    register: swarm_token 
+ 
+- hosts: tag_Type_clients
+  vars:
+    sudo: yes
+    token: "{{hostvars[groups['tag_Name_clients0'][0]]['swarm_token']['stdout']}}"
+    manager: "{{hostvars[groups['tag_Name_clients0'][0]]['ec2_private_ip_address']}}"
+    manager_public: "{{hostvars[groups['tag_Name_clients0'][0]]['ec2_ip_address']}}"
+    client: "{{CLIENT|default('0.0.0.0:2375')}}"
+  remote_user: ubuntu 
+  sudo: true
+  tasks:
+    - name: join manager
+      shell: "docker -H {{client}} swarm join --token {{token}} {{manager}}:2377"
+      when: inventory_hostname != manager_public
+ 
+- hosts: tag_Name_clients0
+  vars:
+    sudo: yes
+    client: "{{CLIENT|default('0.0.0.0:2375')}}"
+  remote_user: ubuntu 
+  sudo: true
+  tasks:
+  - name: label
+    shell: "docker -H {{client}} node ls -q | xargs -I '{}' docker -H {{client}} node update --label-add 'zone=client' '{}'" 
+ 
+ 
