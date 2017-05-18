@@ -15,6 +15,10 @@
       src: "/tmp/{{provider_file}}"
       dest: "{{sequoia_dir}}/providers/file/{{provider_file}}" 
       mode: 0644
+  - name: stash 
+    shell: "git stash"
+    args:
+      chdir: "{{sequoia_dir}}"
   - name: get 
     shell: "/usr/local/go/bin/go get -u github.com/couchbaselabs/sequoia"
   - name: build 
